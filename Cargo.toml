@@ -1,0 +1,17 @@
+[package]
+name = "strand"
+version = "0.1.0"
+authors = ["Aramis Razzaghipour <aramisnoah@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0"
+async-macros = "2.0"
+async-std = { version = "1.2", features = ["attributes"] }
+dirs = "2.0"
+flate2 = "1.0"
+structopt = "0.3"
+surf = "1.0"
+tar = "0.4"
