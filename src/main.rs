@@ -13,16 +13,17 @@ struct Opts {
 #[async_std::main]
 async fn main() -> Result<()> {
     let opts = Opts::from_args();
+
     let config_dir = strand::get_config_dir();
+    let config_path = config_dir.join("config.yaml");
 
     // We do this before loading the config file because loading it is not actually needed to
     // display the config file’s location.
     if opts.config_location {
-        println!("{}", config_dir.display());
+        println!("{}", config_path.display());
         return Ok(());
     }
 
-    let config_path = config_dir.join("config.yaml");
     let config = strand::get_config(&config_path).await?;
 
     // Clean out the plugin directory before installing.
