@@ -1,6 +1,6 @@
 use anyhow::Result;
 use async_std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -13,8 +13,7 @@ struct Opts {
 #[async_std::main]
 async fn main() -> Result<()> {
     let opts = Opts::from_args();
-
-    let config_dir = get_config_dir();
+    let config_dir = strand::get_config_dir();
 
     // We do this before loading the config file because loading it is not actually needed to
     // display the config file’s location.
@@ -31,39 +30,6 @@ async fn main() -> Result<()> {
     strand::install_plugins(config.plugins, config.plugin_dir).await?;
 
     Ok(())
-}
-
-fn get_home_dir() -> PathBuf {
-    use std::process;
-
-    match dirs::home_dir() {
-        Some(dir) => dir,
-        None => {
-            eprintln!("Error: could not locate home directory -- exiting.");
-            process::exit(1);
-        }
-    }
-}
-
-fn get_config_dir() -> PathBuf {
-    use std::{env, process};
-
-    #[cfg(target_os = "macos")]
-    let dir = match env::var_os("XDG_CONFIG_HOME") {
-        Some(dir) => PathBuf::from(dir),
-        None => get_home_dir().join("config"),
-    };
-
-    #[cfg(not(target_os = "macos"))]
-    let dir = match dirs::config_dir() {
-        Some(dir) => dir,
-        None => {
-            eprintln!("Error: could not locate config directory -- exiting.");
-            process::exit(1);
-        }
-    };
-
-    dir.join("strand")
 }
 
 async fn remove_path(path: &Path) -> Result<()> {

@@ -18,6 +18,27 @@ fn get_home_dir() -> PathBuf {
     }
 }
 
+pub fn get_config_dir() -> PathBuf {
+    use std::{env, process};
+
+    #[cfg(target_os = "macos")]
+    let dir = match env::var_os("XDG_CONFIG_HOME") {
+        Some(dir) => PathBuf::from(dir),
+        None => get_home_dir().join("config"),
+    };
+
+    #[cfg(not(target_os = "macos"))]
+    let dir = match dirs::config_dir() {
+        Some(dir) => dir,
+        None => {
+            eprintln!("Error: could not locate config directory -- exiting.");
+            process::exit(1);
+        }
+    };
+
+    dir.join("strand")
+}
+
 fn expand_path(path: &Path) -> PathBuf {
     use std::path::Component;
 
