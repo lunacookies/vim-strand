@@ -5,28 +5,29 @@ use structopt::StructOpt;
 
 #[derive(StructOpt)]
 struct Opts {
-    /// Sets the directory to install plugins into
-    #[structopt(name = "PLUGIN DIR")]
-    plugin_dir: PathBuf,
+    /// Prints out the config file location
+    #[structopt(long)]
+    config_location: bool,
 }
 
 #[async_std::main]
 async fn main() -> Result<()> {
-    use async_macros::try_join;
-
     let opts = Opts::from_args();
 
-    let config_dir = get_conf_dir();
-    let plugin_file = config_dir.join("config");
+    let config_dir = get_config_dir();
 
-    // Doing this in parallel is almost certainly complete overkill.
-    let plugin_dir_empty = ensure_empty_dir(&opts.plugin_dir);
-    let config_dir_exists = ensure_dir_exists(&config_dir);
-    try_join!(plugin_dir_empty, config_dir_exists).await?;
+    // We do this before loading the config file because loading it is not actually needed to
+    // display the config file’s location.
+    if opts.config_location {
+        println!("{}", config_dir.display());
+    }
 
-    let plugins = strand::get_plugins(&plugin_file).await?;
+    let config_path = config_dir.join("config.yaml");
+    let config = strand::get_config(&config_path).await?;
 
-    strand::install_plugins(plugins, opts.plugin_dir).await?;
+    // Clean out the plugin directory before installing.
+    ensure_empty_dir(&config.plugin_dir).await?;
+    strand::install_plugins(config.plugins, config.plugin_dir).await?;
 
     Ok(())
 }
@@ -43,7 +44,7 @@ fn get_home_dir() -> PathBuf {
     }
 }
 
-fn get_conf_dir() -> PathBuf {
+fn get_config_dir() -> PathBuf {
     use std::{env, process};
 
     #[cfg(target_os = "macos")]
@@ -72,12 +73,6 @@ async fn remove_path(path: &Path) -> Result<()> {
     }
 
     Ok(())
-}
-
-async fn ensure_dir_exists(path: &Path) -> Result<()> {
-    Ok(if !path.exists() {
-        fs::create_dir_all(path).await?
-    })
 }
 
 async fn ensure_empty_dir(path: &Path) -> Result<()> {

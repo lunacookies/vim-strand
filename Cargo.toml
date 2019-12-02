@@ -12,6 +12,8 @@ async-macros = "2.0"
 async-std = { version = "1.2", features = ["attributes"] }
 dirs = "2.0"
 flate2 = "1.0"
+serde = { version = "1.0", features = ["derive"] }
 structopt = "0.3"
 surf = "1.0"
 tar = "0.4"
+yaml = { version = "0.8", package = "serde_yaml" }
