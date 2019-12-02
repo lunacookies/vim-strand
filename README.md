@@ -12,7 +12,7 @@ There is no CD set up (yet), so to get strand you will have to clone and compile
 
 This installs the strand binary to `~/.cargo/bin/strand` for your personal use.
 
-Now all that is left to do is to set up a configuration file. Put it in the location specified by `strand --config-location`. Here is an example:
+Now all that is left to do is to set up a configuration file – strand uses the YAML format. Put it in the location specified by `strand --config-location`. Here is an example:
 
 ```yaml
 ---
