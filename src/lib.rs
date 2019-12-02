@@ -10,6 +10,7 @@ use std::{
 pub struct GitHubPlugin {
     user: String,
     repo: String,
+    branch: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -24,11 +25,18 @@ pub enum Plugin {
 impl fmt::Display for Plugin {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Plugin::GitHub(plugin) => write!(
-                f,
-                "https://codeload.github.com/{}/{}/tar.gz/master",
-                plugin.user, plugin.repo
-            ),
+            Plugin::GitHub(plugin) => {
+                let branch = match &plugin.branch {
+                    Some(branch) => branch,
+                    None => "master",
+                };
+
+                write!(
+                    f,
+                    "https://codeload.github.com/{}/{}/tar.gz/{}",
+                    plugin.user, plugin.repo, branch
+                )
+            }
             Plugin::Archive(plugin) => write!(f, "{}", plugin.0),
         }
     }
