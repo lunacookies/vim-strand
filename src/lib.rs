@@ -10,7 +10,7 @@ use std::{
 pub struct GitHubPlugin {
     user: String,
     repo: String,
-    branch: Option<String>,
+    git_ref: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -26,15 +26,15 @@ impl fmt::Display for Plugin {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Plugin::GitHub(plugin) => {
-                let branch = match &plugin.branch {
-                    Some(branch) => branch,
+                let git_ref = match &plugin.git_ref {
+                    Some(git_ref) => git_ref,
                     None => "master",
                 };
 
                 write!(
                     f,
                     "https://codeload.github.com/{}/{}/tar.gz/{}",
-                    plugin.user, plugin.repo, branch
+                    plugin.user, plugin.repo, git_ref
                 )
             }
             Plugin::Archive(plugin) => write!(f, "{}", plugin.0),
