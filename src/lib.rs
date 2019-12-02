@@ -8,8 +8,8 @@ use std::{
 
 #[derive(Deserialize)]
 pub struct GitHubPlugin {
-    pub user: String,
-    pub repo: String,
+    user: String,
+    repo: String,
 }
 
 #[derive(Deserialize)]
