@@ -20,6 +20,7 @@ async fn main() -> Result<()> {
     // display the config file’s location.
     if opts.config_location {
         println!("{}", config_dir.display());
+        return Ok(());
     }
 
     let config_path = config_dir.join("config.yaml");
