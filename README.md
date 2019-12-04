@@ -7,10 +7,10 @@ A barebones plugin manager for Vim in Rust that takes advantage of Vim’s packa
 There is no CD set up (yet), so to get strand you will have to clone and compile it yourself. This means you will need Rust installed on your system. If you don’t have it already I recommend using [rustup](https://rustup.rs). Once you have Rust installed, run the following command from inside your clone of this repo:
 
 ```sh
-> cargo install --force --path .
+> RUSTFLAGS='--codegen target-cpu=native' cargo install --force --path .
 ```
 
-This installs the strand binary to `~/.cargo/bin/strand` for your personal use.
+This compiles strand with optimisations specific to your native CPU architecture, and then installs the generated binary to `~/.cargo/bin/strand` for your personal use.
 
 Now all that is left to do is to set up a configuration file – strand uses the YAML format. Put it in the location specified by `strand --config-location`. Here is an example:
 
