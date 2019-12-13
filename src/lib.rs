@@ -68,8 +68,29 @@ pub struct GitHubPlugin {
     git_ref: Option<String>,
 }
 
+impl fmt::Display for GitHubPlugin {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let git_ref = match &self.git_ref {
+            Some(git_ref) => git_ref,
+            None => "master",
+        };
+
+        write!(
+            f,
+            "https://codeload.github.com/{}/{}/tar.gz/{}",
+            self.user, self.repo, git_ref
+        )
+    }
+}
+
 #[derive(Deserialize)]
 pub struct ArchivePlugin(String);
+
+impl fmt::Display for ArchivePlugin {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 #[derive(Deserialize)]
 pub enum Plugin {
@@ -80,19 +101,8 @@ pub enum Plugin {
 impl fmt::Display for Plugin {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Plugin::GitHub(plugin) => {
-                let git_ref = match &plugin.git_ref {
-                    Some(git_ref) => git_ref,
-                    None => "master",
-                };
-
-                write!(
-                    f,
-                    "https://codeload.github.com/{}/{}/tar.gz/{}",
-                    plugin.user, plugin.repo, git_ref
-                )
-            }
-            Plugin::Archive(plugin) => write!(f, "{}", plugin.0),
+            Plugin::GitHub(plugin) => write!(f, "{}", plugin),
+            Plugin::Archive(plugin) => write!(f, "{}", plugin),
         }
     }
 }
