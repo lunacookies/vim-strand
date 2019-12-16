@@ -2,6 +2,7 @@ use anyhow::Result;
 use async_std::task;
 use serde::Deserialize;
 use std::{
+    convert::TryFrom,
     fmt,
     path::{Path, PathBuf},
     str::FromStr,
@@ -88,32 +89,84 @@ impl FromStr for GitProvider {
 
 // git_ref can be a branch name, tag name, or commit hash.
 #[derive(Deserialize)]
+#[serde(try_from = "String")]
 pub struct GitRepo {
     provider: GitProvider,
     user: String,
     repo: String,
-    git_ref: Option<String>,
+    git_ref: String,
 }
 
 impl fmt::Display for GitRepo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let git_ref = match &self.git_ref {
-            Some(git_ref) => git_ref,
-            None => "master",
-        };
-
         match self.provider {
             GitProvider::GitHub => write!(
                 f,
                 "https://codeload.github.com/{}/{}/tar.gz/{}",
-                self.user, self.repo, git_ref
+                self.user, self.repo, self.git_ref
             ),
             GitProvider::Bitbucket => write!(
                 f,
                 "https://bitbucket.org/{}/{}/get/{}.tar.gz",
-                self.user, self.repo, git_ref
+                self.user, self.repo, self.git_ref
             ),
         }
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum GitRepoParseError {
+    #[error("no user was found")]
+    MissingUser,
+    #[error("failed to parse Git provider")]
+    ProviderParse(#[from] GitProviderParseError),
+}
+
+fn split_on_pattern<'a>(s: &'a str, pattern: &str, i: &mut usize) -> Option<&'a str> {
+    s.find(pattern).map(|x| {
+        *i += x;
+        let result = &s[..x];
+        *i += pattern.len(); // Skip the pattern we matched on.
+
+        result
+    })
+}
+
+impl TryFrom<String> for GitRepo {
+    type Error = GitRepoParseError;
+
+    // TODO: Refactor to remove the index and mutate a slice instead.
+    fn try_from(input: String) -> Result<Self, Self::Error> {
+        let input = input.as_str();
+
+        // Index through the input’s characters so that we can ignore the part that has already
+        // been parsed.
+        let mut i = 0;
+
+        // Default to GitHub when the provider is elided.
+        let provider = split_on_pattern(&input, "@", &mut i)
+            .map_or(Ok(GitProvider::GitHub), GitProvider::from_str)?;
+
+        let user =
+            split_on_pattern(&input[i..], "/", &mut i).ok_or_else(|| Self::Error::MissingUser)?;
+
+        // When the ‘:’ signifier for a Git reference is found, the part preceding it must be the
+        // repo name and the part after the Git reference. If it is not found, the rest of ‘input’
+        // must be the repo name, in this case using ‘master’ as the default Git reference.
+        //
+        // FIXME: Some repos have something different to ‘master’ as their default branch. Handle
+        // this somehow.
+        let (repo, git_ref) = match split_on_pattern(&input[i..], ":", &mut i) {
+            Some(repo) => (repo, &input[i..]),
+            None => (&input[i..], "master"),
+        };
+
+        Ok(Self {
+            provider: provider.into(),
+            user: user.into(),
+            repo: repo.into(),
+            git_ref: git_ref.into(),
+        })
     }
 }
 
@@ -127,7 +180,6 @@ impl fmt::Display for ArchivePlugin {
 }
 
 #[derive(Deserialize)]
-#[serde(untagged)]
 pub enum Plugin {
     Git(GitRepo),
     Archive(ArchivePlugin),
