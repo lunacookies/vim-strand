@@ -4,7 +4,9 @@ use serde::Deserialize;
 use std::{
     fmt,
     path::{Path, PathBuf},
+    str::FromStr,
 };
+use thiserror::Error;
 
 fn get_home_dir() -> PathBuf {
     use std::process;
@@ -64,6 +66,24 @@ fn expand_path(path: &Path) -> PathBuf {
 pub enum GitProvider {
     GitHub,
     Bitbucket,
+}
+
+#[derive(Error, Debug)]
+pub enum GitProviderParseError {
+    #[error("Git provider {0} not recognised -- try ‘github’ or ‘bitbucket’ instead")]
+    UnknownProvider(String),
+}
+
+impl FromStr for GitProvider {
+    type Err = GitProviderParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "github" => Ok(GitProvider::GitHub),
+            "bitbucket" => Ok(GitProvider::Bitbucket),
+            _ => Err(Self::Err::UnknownProvider(s.into())),
+        }
+    }
 }
 
 // git_ref can be a branch name, tag name, or commit hash.
