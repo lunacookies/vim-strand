@@ -24,136 +24,136 @@ echo "
 plugin_dir: ~/.vim/pack/strand/start
 
 plugins:
-  - GitHub:
-      user: PeterRincker
-      repo: vim-searchlight
+  - provider: GitHub
+    user: PeterRincker
+    repo: vim-searchlight
 
-  - GitHub:
-      user: cakebaker
-      repo: scss-syntax.vim
+  - provider: GitHub
+    user: cakebaker
+    repo: scss-syntax.vim
 
-  - GitHub:
-      user: cespare
-      repo: vim-toml
+  - provider: GitHub
+    user: cespare
+    repo: vim-toml
 
-  - GitHub:
-      user: christoomey
-      repo: vim-tmux-navigator
+  - provider: GitHub
+    user: christoomey
+    repo: vim-tmux-navigator
 
-  - GitHub:
-      user: cocopon
-      repo: inspecthi.vim
+  - provider: GitHub
+    user: cocopon
+    repo: inspecthi.vim
 
-  - GitHub:
-      user: hail2u
-      repo: vim-css3-syntax
+  - provider: GitHub
+    user: hail2u
+    repo: vim-css3-syntax
 
-  - GitHub:
-      user: jonathanfilip
-      repo: vim-lucius
+  - provider: GitHub
+    user: jonathanfilip
+    repo: vim-lucius
 
-  - GitHub:
-      user: junegunn
-      repo: fzf.vim
+  - provider: GitHub
+    user: junegunn
+    repo: fzf.vim
 
-  - GitHub:
-      user: junegunn
-      repo: vim-easy-align
+  - provider: GitHub
+    user: junegunn
+    repo: vim-easy-align
 
-  - GitHub:
-      user: justinmk
-      repo: vim-dirvish
+  - provider: GitHub
+    user: justinmk
+    repo: vim-dirvish
 
-  - GitHub:
-      user: kana
-      repo: vim-textobj-user
+  - provider: GitHub
+    user: kana
+    repo: vim-textobj-user
 
-  - GitHub:
-      user: kh3phr3n
-      repo: python-syntax
+  - provider: GitHub
+    user: kh3phr3n
+    repo: python-syntax
 
-  - GitHub:
-      user: lifepillar
-      repo: vim-colortemplate
+  - provider: GitHub
+    user: lifepillar
+    repo: vim-colortemplate
 
-  - GitHub:
-      user: lifepillar
-      repo: vim-mucomplete
+  - provider: GitHub
+    user: lifepillar
+    repo: vim-mucomplete
 
-  - GitHub:
-      user: othree
-      repo: html5.vim
+  - provider: GitHub
+    user: othree
+    repo: html5.vim
 
-  - GitHub:
-      user: pangloss
-      repo: vim-javascript
+  - provider: GitHub
+    user: pangloss
+    repo: vim-javascript
 
-  - GitHub:
-      user: reedes
-      repo: vim-textobj-quote
+  - provider: GitHub
+    user: reedes
+    repo: vim-textobj-quote
 
-  - GitHub:
-      user: romainl
-      repo: vim-cool
+  - provider: GitHub
+    user: romainl
+    repo: vim-cool
 
-  - GitHub:
-      user: romainl
-      repo: vim-qf
+  - provider: GitHub
+    user: romainl
+    repo: vim-qf
 
-  - GitHub:
-      user: rust-lang
-      repo: rust.vim
+  - provider: GitHub
+    user: rust-lang
+    repo: rust.vim
 
-  - GitHub:
-      user: sgur
-      repo: vim-editorconfig
+  - provider: GitHub
+    user: sgur
+    repo: vim-editorconfig
 
-  - GitHub:
-      user: tmsvg
-      repo: pear-tree
+  - provider: GitHub
+    user: tmsvg
+    repo: pear-tree
 
-  - GitHub:
-      user: tmux-plugins
-      repo: vim-tmux
+  - provider: GitHub
+    user: tmux-plugins
+    repo: vim-tmux
 
-  - GitHub:
-      user: tpope
-      repo: vim-commentary
+  - provider: GitHub
+    user: tpope
+    repo: vim-commentary
 
-  - GitHub:
-      user: tpope
-      repo: vim-endwise
+  - provider: GitHub
+    user: tpope
+    repo: vim-endwise
 
-  - GitHub:
-      user: tpope
-      repo: vim-fugitive
+  - provider: GitHub
+    user: tpope
+    repo: vim-fugitive
 
-  - GitHub:
-      user: tpope
-      repo: vim-git
+  - provider: GitHub
+    user: tpope
+    repo: vim-git
 
-  - GitHub:
-      user: tpope
-      repo: vim-markdown
+  - provider: GitHub
+    user: tpope
+    repo: vim-markdown
 
-  - GitHub:
-      user: tpope
-      repo: vim-repeat
+  - provider: GitHub
+    user: tpope
+    repo: vim-repeat
 
-  - GitHub:
-      user: tpope
-      repo: vim-surround
+  - provider: GitHub
+    user: tpope
+    repo: vim-surround
 
-  - GitHub:
-      user: tpope
-      repo: vim-unimpaired
+  - provider: GitHub
+    user: tpope
+    repo: vim-unimpaired
 
-  - GitHub:
-      user: wellle
-      repo: targets.vim
+  - provider: GitHub
+    user: wellle
+    repo: targets.vim
 " > "$strand_config"
 
-# Install vim-plug before running the profile
+# Install vim- provider:plug before running the profil
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
