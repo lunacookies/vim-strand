@@ -60,26 +60,40 @@ fn expand_path(path: &Path) -> PathBuf {
     }
 }
 
+#[derive(Deserialize)]
+pub enum GitProvider {
+    GitHub,
+    Bitbucket,
+}
+
 // git_ref can be a branch name, tag name, or commit hash.
 #[derive(Deserialize)]
-pub struct GitHubPlugin {
+pub struct GitRepo {
+    provider: GitProvider,
     user: String,
     repo: String,
     git_ref: Option<String>,
 }
 
-impl fmt::Display for GitHubPlugin {
+impl fmt::Display for GitRepo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let git_ref = match &self.git_ref {
             Some(git_ref) => git_ref,
             None => "master",
         };
 
-        write!(
-            f,
-            "https://codeload.github.com/{}/{}/tar.gz/{}",
-            self.user, self.repo, git_ref
-        )
+        match self.provider {
+            GitProvider::GitHub => write!(
+                f,
+                "https://codeload.github.com/{}/{}/tar.gz/{}",
+                self.user, self.repo, git_ref
+            ),
+            GitProvider::Bitbucket => write!(
+                f,
+                "https://bitbucket.org/{}/{}/get/{}.tar.gz",
+                self.user, self.repo, git_ref
+            ),
+        }
     }
 }
 
@@ -93,15 +107,16 @@ impl fmt::Display for ArchivePlugin {
 }
 
 #[derive(Deserialize)]
+#[serde(untagged)]
 pub enum Plugin {
-    GitHub(GitHubPlugin),
+    Git(GitRepo),
     Archive(ArchivePlugin),
 }
 
 impl fmt::Display for Plugin {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Plugin::GitHub(plugin) => write!(f, "{}", plugin),
+            Plugin::Git(plugin) => write!(f, "{}", plugin),
             Plugin::Archive(plugin) => write!(f, "{}", plugin),
         }
     }
