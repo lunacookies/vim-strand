@@ -24,133 +24,38 @@ echo "
 plugin_dir: ~/.vim/pack/strand/start
 
 plugins:
-  - provider: GitHub
-    user: PeterRincker
-    repo: vim-searchlight
-
-  - provider: GitHub
-    user: cakebaker
-    repo: scss-syntax.vim
-
-  - provider: GitHub
-    user: cespare
-    repo: vim-toml
-
-  - provider: GitHub
-    user: christoomey
-    repo: vim-tmux-navigator
-
-  - provider: GitHub
-    user: cocopon
-    repo: inspecthi.vim
-
-  - provider: GitHub
-    user: hail2u
-    repo: vim-css3-syntax
-
-  - provider: GitHub
-    user: jonathanfilip
-    repo: vim-lucius
-
-  - provider: GitHub
-    user: junegunn
-    repo: fzf.vim
-
-  - provider: GitHub
-    user: junegunn
-    repo: vim-easy-align
-
-  - provider: GitHub
-    user: justinmk
-    repo: vim-dirvish
-
-  - provider: GitHub
-    user: kana
-    repo: vim-textobj-user
-
-  - provider: GitHub
-    user: kh3phr3n
-    repo: python-syntax
-
-  - provider: GitHub
-    user: lifepillar
-    repo: vim-colortemplate
-
-  - provider: GitHub
-    user: lifepillar
-    repo: vim-mucomplete
-
-  - provider: GitHub
-    user: othree
-    repo: html5.vim
-
-  - provider: GitHub
-    user: pangloss
-    repo: vim-javascript
-
-  - provider: GitHub
-    user: reedes
-    repo: vim-textobj-quote
-
-  - provider: GitHub
-    user: romainl
-    repo: vim-cool
-
-  - provider: GitHub
-    user: romainl
-    repo: vim-qf
-
-  - provider: GitHub
-    user: rust-lang
-    repo: rust.vim
-
-  - provider: GitHub
-    user: sgur
-    repo: vim-editorconfig
-
-  - provider: GitHub
-    user: tmsvg
-    repo: pear-tree
-
-  - provider: GitHub
-    user: tmux-plugins
-    repo: vim-tmux
-
-  - provider: GitHub
-    user: tpope
-    repo: vim-commentary
-
-  - provider: GitHub
-    user: tpope
-    repo: vim-endwise
-
-  - provider: GitHub
-    user: tpope
-    repo: vim-fugitive
-
-  - provider: GitHub
-    user: tpope
-    repo: vim-git
-
-  - provider: GitHub
-    user: tpope
-    repo: vim-markdown
-
-  - provider: GitHub
-    user: tpope
-    repo: vim-repeat
-
-  - provider: GitHub
-    user: tpope
-    repo: vim-surround
-
-  - provider: GitHub
-    user: tpope
-    repo: vim-unimpaired
-
-  - provider: GitHub
-    user: wellle
-    repo: targets.vim
+  - Git: github@PeterRincker/vim-searchlight
+  - Git: github@cakebaker/scss-syntax.vim
+  - Git: github@cespare/vim-toml
+  - Git: github@christoomey/vim-tmux-navigator
+  - Git: github@cocopon/inspecthi.vim
+  - Git: github@hail2u/vim-css3-syntax
+  - Git: github@jonathanfilip/vim-lucius
+  - Git: github@junegunn/fzf.vim
+  - Git: github@junegunn/vim-easy-align
+  - Git: github@justinmk/vim-dirvish
+  - Git: github@kana/vim-textobj-user
+  - Git: github@kh3phr3n/python-syntax
+  - Git: github@lifepillar/vim-colortemplate
+  - Git: github@lifepillar/vim-mucomplete
+  - Git: github@othree/html5.vim
+  - Git: github@pangloss/vim-javascript
+  - Git: github@reedes/vim-textobj-quote
+  - Git: github@romainl/vim-cool
+  - Git: github@romainl/vim-qf
+  - Git: github@rust-lang/rust.vim
+  - Git: github@sgur/vim-editorconfig
+  - Git: github@tmsvg/pear-tree
+  - Git: github@tmux-plugins/vim-tmux
+  - Git: github@tpope/vim-commentary
+  - Git: github@tpope/vim-endwise
+  - Git: github@tpope/vim-fugitive
+  - Git: github@tpope/vim-git
+  - Git: github@tpope/vim-markdown
+  - Git: github@tpope/vim-repeat
+  - Git: github@tpope/vim-surround
+  - Git: github@tpope/vim-unimpaired
+  - Git: github@wellle/targets.vim
 " > "$strand_config"
 
 # Install vim- provider:plug before running the profil
