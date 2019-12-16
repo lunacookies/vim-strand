@@ -124,6 +124,7 @@ impl fmt::Display for Plugin {
 
 impl Plugin {
     async fn install_plugin(&self, path: PathBuf) -> Result<()> {
+        use anyhow::Context;
         use std::process;
 
         let url = format!("{}", self);
@@ -134,7 +135,12 @@ impl Plugin {
                 process::exit(1);
             }
         };
-        decompress_tar_gz(&archive, &path)?;
+        decompress_tar_gz(&archive, &path).with_context(|| {
+            format!(
+                "failed to extact archive while installing plugin from URL {} -- got from server:\n‘{}’",
+                self, String::from_utf8_lossy(&archive)
+            )
+        })?;
         println!("Installed {}", self);
 
         Ok(())
