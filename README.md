@@ -20,31 +20,14 @@ plugin_dir: ~/.vim/pack/strand/start
 
 plugins:
   # GitHub and Bitbucket repos are both fully supported
-  - provider: GitHub
-    user: tpope
-    repo: vim-surround
-
-  - provider: Bitbucket
-    user: vim-plugins-mirror
-    repo: vim-surround
-
-  - provider: GitHub
-    user: neoclide
-    repo: coc.nvim
-    git_ref: release # Specify a branch name ...
-
-  - provider: GitHub
-    user: tpope
-    repo: vim-unimpaired
-    git_ref: v2.0    # ... a tag name ...
-
-  - provider: GitHub
-    user: romainl
-    repo: vim-qf
-    git_ref: 4a97465 # ... or a commit hash.
+  - Git: github@tpope/vim-surround
+  - Git: bitbucket@vim-plugins-mirror/vim-surround
+  - Git: github@neoclide/coc.nvim:release # Specify a branch name,
+  - Git: github@tpope/vim-unimpaired:v2.0 # a tag name,
+  - Git: github@romainl/vim-qf:4a97465    # or a commit hash.
 
   # Or just plain tar.gz archive URLs
-  - https://codeload.github.com/romainl/vim-qlist/tar.gz/master
+  - Archive: https://codeload.github.com/romainl/vim-qlist/tar.gz/master
 ```
 
 #### Philosophy
