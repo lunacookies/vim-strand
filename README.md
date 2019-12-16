@@ -25,8 +25,8 @@ plugins:
     repo: vim-surround
 
   - provider: Bitbucket
-    user: othree
-    repo: vim-autocomplpop
+    user: vim-plugins-mirror
+    repo: vim-surround
 
   - provider: GitHub
     user: neoclide
