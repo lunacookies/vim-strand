@@ -8,6 +8,7 @@ use std::{
     str::FromStr,
 };
 use thiserror::Error;
+use url::Url;
 
 fn get_home_dir() -> PathBuf {
     use std::process;
@@ -171,7 +172,7 @@ impl TryFrom<String> for GitRepo {
 }
 
 #[derive(Deserialize)]
-pub struct ArchivePlugin(String);
+pub struct ArchivePlugin(Url);
 
 impl fmt::Display for ArchivePlugin {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
