@@ -1,5 +1,5 @@
 use anyhow::Result;
-use async_std::task;
+use async_std::{sync, task};
 use serde::Deserialize;
 use std::{
     convert::TryFrom,
@@ -215,6 +215,35 @@ impl FromStr for ArchivePlugin {
     }
 }
 
+enum InstallStateKind {
+    Downloading,
+    Extracting,
+    Installed,
+}
+
+impl fmt::Display for InstallStateKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use colored::*;
+
+        match self {
+            InstallStateKind::Downloading => write!(f, "{}", "Downloading".cyan().bold()),
+            InstallStateKind::Extracting => write!(f, " {}", "Extracting".blue().bold()),
+            InstallStateKind::Installed => write!(f, "✓ {}", "Installed".green().bold()),
+        }
+    }
+}
+
+struct InstallState {
+    status: InstallStateKind,
+    name: String,
+}
+
+impl fmt::Display for InstallState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {}", self.status, self.name)
+    }
+}
+
 #[derive(Deserialize)]
 pub enum Plugin {
     Git(GitRepo),
@@ -258,9 +287,17 @@ impl FromStr for Plugin {
 }
 
 impl Plugin {
-    async fn install_plugin(&self, path: PathBuf) -> Result<()> {
+    async fn install_plugin(&self, path: PathBuf, s: sync::Sender<InstallState>) -> Result<()> {
         use anyhow::Context;
         use std::process;
+
+        let name = self.get_name();
+
+        s.send(InstallState {
+            status: InstallStateKind::Downloading,
+            name: name.clone(),
+        })
+        .await;
 
         let url = format!("{}", self);
         let archive = match surf::get(url).recv_bytes().await {
@@ -270,12 +307,25 @@ impl Plugin {
                 process::exit(1);
             }
         };
+
+        s.send(InstallState {
+            status: InstallStateKind::Extracting,
+            name: name.clone(),
+        })
+        .await;
+
         decompress_tar_gz(&archive, &path).with_context(|| {
             format!(
                 "failed to extact archive while installing plugin from URL {} -- got from server:\n‘{}’",
                 self, String::from_utf8_lossy(&archive)
             )
         })?;
+
+        s.send(InstallState {
+            status: InstallStateKind::Installed,
+            name,
+        })
+        .await;
 
         Ok(())
     }
@@ -309,8 +359,6 @@ fn decompress_tar_gz(bytes: &[u8], path: &Path) -> Result<()> {
 }
 
 pub async fn install_plugins(plugins: Vec<Plugin>, dir: PathBuf) -> Result<()> {
-    use async_std::sync;
-    use colored::*;
     use pbr::MultiBar;
     use std::time::Duration;
 
@@ -332,43 +380,34 @@ pub async fn install_plugins(plugins: Vec<Plugin>, dir: PathBuf) -> Result<()> {
         spinner.show_time_left = false;
         spinner.tick_format("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"); // Nice spinner characters.
 
-        // Allow the spinner to refresh as fast as it needs to.
-        spinner.set_max_refresh_rate(Some(Duration::from_millis(0)));
-
-        // TODO: extract this into some kind of impl for ArchivePlugin and GitRepo (custom Name
-        // trait?).
-        let name = match &p {
-            Plugin::Archive(a) => format!("{}", a),
-            Plugin::Git(g) => g.repo.clone(),
-        };
-
-        spinner.message(&format!(" {} {}  ", "Installing".cyan().bold(), name));
-
-        // Oneshot channel to communicate between the ticker task and the plugin installation task.
-        let (s, r) = sync::channel(1);
+        // Channel to communicate between the ticker task and the plugin installation task.
+        let (s, r): (_, sync::Receiver<InstallState>) = sync::channel(1);
 
         tasks.push(task::spawn(async move {
             let ticker = task::spawn(async move {
                 // Tick the spinner every fifty milliseconds until the plugin has finished
                 // installing.
-                while r.is_empty() {
+                loop {
+                    if r.is_full() {
+                        let install_state = r.recv().await.unwrap();
+                        let msg = format!("{}  ", install_state);
+
+                        if let InstallStateKind::Installed = install_state.status {
+                            spinner.finish_print(&msg);
+                            break;
+                        } else {
+                            spinner.message(&msg);
+                        }
+                    }
+
                     spinner.tick();
                     task::sleep(Duration::from_millis(50)).await;
                 }
-
-                spinner.finish_print(&format!("✓ {} {}  ", "Installed".green().bold(), name));
             });
 
-            let install = task::spawn(async move {
-                let result = p.install_plugin(dir).await;
+            let install = task::spawn(async move { p.install_plugin(dir, s).await });
 
-                // Tell the ticker task that the plugin has finished installation.
-                s.send(()).await;
-
-                result
-            });
-
-            // We return the success or failure of the plugin to the surrounding task
+            // We return the success or failure of installing the plugin to the surrounding task
             ticker.await;
             install.await
         }));
