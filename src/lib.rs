@@ -65,12 +65,13 @@ fn expand_path(path: &Path) -> PathBuf {
 #[derive(Deserialize)]
 pub enum GitProvider {
     GitHub,
+    GitLab,
     Bitbucket,
 }
 
 #[derive(Error, Debug)]
 pub enum GitProviderParseError {
-    #[error("Git provider {0} not recognised -- try ‘github’ or ‘bitbucket’ instead")]
+    #[error("Git provider {0} not recognised -- try ‘github’, ‘gitlab’ or ‘bitbucket’ instead")]
     UnknownProvider(String),
 }
 
@@ -80,6 +81,7 @@ impl FromStr for GitProvider {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "github" => Ok(GitProvider::GitHub),
+            "gitlab" => Ok(GitProvider::GitLab),
             "bitbucket" => Ok(GitProvider::Bitbucket),
             _ => Err(Self::Err::UnknownProvider(s.into())),
         }
@@ -102,6 +104,11 @@ impl fmt::Display for GitRepo {
             GitProvider::GitHub => write!(
                 f,
                 "https://codeload.github.com/{}/{}/tar.gz/{}",
+                self.user, self.repo, self.git_ref
+            ),
+            GitProvider::GitLab => write!(
+                f,
+                "https://gitlab.com/{0}/{1}/-/archive/{2}/{0}-{2}.tar.gz",
                 self.user, self.repo, self.git_ref
             ),
             GitProvider::Bitbucket => write!(
