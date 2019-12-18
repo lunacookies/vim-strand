@@ -138,13 +138,11 @@ fn split_on_pattern<'a>(s: &'a str, pattern: &str, i: &mut usize) -> Option<&'a 
     })
 }
 
-impl TryFrom<String> for GitRepo {
-    type Error = GitRepoParseError;
+impl FromStr for GitRepo {
+    type Err = GitRepoParseError;
 
     // TODO: Refactor to remove the index and mutate a slice instead.
-    fn try_from(input: String) -> Result<Self, Self::Error> {
-        let input = input.as_str();
-
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
         // Index through the input’s characters so that we can ignore the part that has already
         // been parsed.
         let mut i = 0;
@@ -154,7 +152,7 @@ impl TryFrom<String> for GitRepo {
             .map_or(Ok(GitProvider::GitHub), GitProvider::from_str)?;
 
         let user =
-            split_on_pattern(&input[i..], "/", &mut i).ok_or_else(|| Self::Error::MissingUser)?;
+            split_on_pattern(&input[i..], "/", &mut i).ok_or_else(|| Self::Err::MissingUser)?;
 
         // When the ‘:’ signifier for a Git reference is found, the part preceding it must be the
         // repo name and the part after the Git reference. If it is not found, the rest of ‘input’
@@ -173,6 +171,14 @@ impl TryFrom<String> for GitRepo {
             repo: repo.into(),
             git_ref: git_ref.into(),
         })
+    }
+}
+
+impl TryFrom<String> for GitRepo {
+    type Error = GitRepoParseError;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::from_str(&s)
     }
 }
 
