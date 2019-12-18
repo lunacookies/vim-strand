@@ -40,6 +40,14 @@ plugins:
 
 When you run `strand` in your shell, the specified `plugin_dir` is completely emptied, after which all the plugins in the config file are installed afresh. This property allows you to run `strand` when you want to update your plugins or when you have removed a plugin from your config file and want it gone – all from one command.
 
+The same syntax for specifying plugins also applies to the `install` subcommand, to which you can provide a list of plugins to temporarily install:
+
+```bash
+> strand install github@romainl/vim-qf:4a97465 https://codeload.github.com/romainl/vim-qlist/tar.gz/master
+```
+
+The next time you run `strand` these plugins will be removed (unless they are in your config file).
+
 #### Philosophy
 
 To keep the plugin manager as simple as possible, it only provides one function: re-installing the entire plugin directory each time. This avoids the need for a `clean` command and an `update` command. For maximum speed, strand is written in Rust, using the wonderful [async-std](https://github.com/async-rs/async-std) library for concurrent task support. Additionally, instead of cloning Git repositories by either shelling out to `git` or using a Git binding, strand essentially acts as a parallel `tar.gz` downloader, making use of the automated compressed archive generation of Git hosting providers like GitHub and Bitbucket to avoid downloading extraneous Git info. (This can also be partially achieved with `git clone --depth=1`, but this AFAIK is not compressed like `tar.gz` is.)
