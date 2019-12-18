@@ -26,7 +26,7 @@ pub fn get_config_dir() -> PathBuf {
     #[cfg(target_os = "macos")]
     let dir = match std::env::var_os("XDG_CONFIG_HOME") {
         Some(dir) => PathBuf::from(dir),
-        None => get_home_dir().join("config"),
+        None => get_home_dir().join(".config"),
     };
 
     #[cfg(not(target_os = "macos"))]
