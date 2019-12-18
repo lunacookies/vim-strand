@@ -251,7 +251,6 @@ impl Plugin {
                 self, String::from_utf8_lossy(&archive)
             )
         })?;
-        println!("Installed {}", self);
 
         Ok(())
     }
@@ -285,12 +284,73 @@ fn decompress_tar_gz(bytes: &[u8], path: &Path) -> Result<()> {
 }
 
 pub async fn install_plugins(plugins: Vec<Plugin>, dir: PathBuf) -> Result<()> {
+    use async_std::sync;
+    use colored::*;
+    use pbr::MultiBar;
+    use std::time::Duration;
+
     let mut tasks = Vec::with_capacity(plugins.len());
+    let mut multi = MultiBar::new(); // Holds the spinners of all plugins
 
     plugins.into_iter().for_each(|p| {
+        // We have to make a fresh clone of ‘dir’ for each plugin so that the task’s future stays
+        // 'static.
         let dir = dir.clone();
-        tasks.push(task::spawn(async move { p.install_plugin(dir).await }));
+
+        // Create a new spinner connected to the MultiBar that shows only the spinner itself and the
+        // message we set.
+        let mut spinner = multi.create_bar(0);
+        spinner.show_bar = false;
+        spinner.show_counter = false;
+        spinner.show_percent = false;
+        spinner.show_speed = false;
+        spinner.show_time_left = false;
+        spinner.tick_format("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"); // Nice spinner characters.
+
+        // Allow the spinner to refresh as fast as it needs to.
+        spinner.set_max_refresh_rate(Some(Duration::from_millis(0)));
+
+        // TODO: extract this into some kind of impl for ArchivePlugin and GitRepo (custom Name
+        // trait?).
+        let name = match &p {
+            Plugin::Archive(a) => format!("{}", a),
+            Plugin::Git(g) => g.repo.clone(),
+        };
+
+        spinner.message(&format!(" {} {}  ", "Installing".cyan().bold(), name));
+
+        // Oneshot channel to communicate between the ticker task and the plugin installation task.
+        let (s, r) = sync::channel(1);
+
+        tasks.push(task::spawn(async move {
+            let ticker = task::spawn(async move {
+                // Tick the spinner every fifty milliseconds until the plugin has finished
+                // installing.
+                while r.is_empty() {
+                    spinner.tick();
+                    task::sleep(Duration::from_millis(50)).await;
+                }
+
+                spinner.finish_print(&format!("✓ {} {}  ", "Installed".green().bold(), name));
+            });
+
+            let install = task::spawn(async move {
+                let result = p.install_plugin(dir).await;
+
+                // Tell the ticker task that the plugin has finished installation.
+                s.send(()).await;
+
+                result
+            });
+
+            // We return the success or failure of the plugin to the surrounding task
+            ticker.await;
+            install.await
+        }));
     });
+
+    // Start listening for spinner activity just before the plugins’ installation is commenced.
+    multi.listen();
 
     for task in tasks {
         task.await?;
