@@ -1,6 +1,7 @@
 use anyhow::Result;
 use async_std::fs;
 use std::path::Path;
+use strand::Plugin;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -8,6 +9,21 @@ struct Opts {
     /// Prints out the config file location
     #[structopt(long)]
     config_location: bool,
+
+    #[structopt(subcommand)]
+    subcommand: Option<Subcommand>,
+}
+
+#[derive(StructOpt)]
+enum Subcommand {
+    /// Install a specific plugin without adding it to the config file
+    #[structopt(name = "install")]
+    Install {
+        /// A list of plugins to install and add to the config file
+        // require at least one Plugin in the Vec
+        #[structopt(name = "PLUGINS", required = true)]
+        plugins: Vec<Plugin>,
+    },
 }
 
 #[async_std::main]
@@ -25,6 +41,12 @@ async fn main() -> Result<()> {
     }
 
     let config = strand::get_config(&config_path).await?;
+
+    // Install all plugins specified by the install subcommand.
+    if let Some(Subcommand::Install { plugins }) = opts.subcommand {
+        strand::install_plugins(plugins, config.plugin_dir).await?;
+        return Ok(()); // Early return since we don’t need to install plugins from the config file.
+    }
 
     // Clean out the plugin directory before installing.
     ensure_empty_dir(&config.plugin_dir).await?;
