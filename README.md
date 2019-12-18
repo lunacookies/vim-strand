@@ -22,18 +22,19 @@ Now all that is left to do is to set up a configuration file – strand uses the
 plugin_dir: ~/.vim/pack/strand/start
 
 plugins:
-  # GitHub and Bitbucket repos are both fully supported
+  # GitHub, GitLab and Bitbucket repos are all fully supported
   - Git: github@tpope/vim-surround
+  - Git: gitlab@YaBoiBurner/vim-quantum
   - Git: bitbucket@vim-plugins-mirror/vim-surround
 
   # GitHub is the default Git provider, so ‘github@’ can be elided:
   - Git: tpope/vim-endwise
 
-  - Git: github@neoclide/coc.nvim:release # Specify a branch name,
-  - Git: github@tpope/vim-unimpaired:v2.0 # a tag name,
-  - Git: github@romainl/vim-qf:4a97465    # or a commit hash.
+  - Git: gitlab@YaBoiBurner/vim-quantum:new-styles # Specify a branch name,
+  - Git: tpope/vim-unimpaired:v2.0                 # a tag name,
+  - Git: romainl/vim-qf:4a97465                    # or a commit hash.
 
-  # Or just plain tar.gz archive URLs
+  # Or just the URL of a tar.gz archive
   - Archive: https://codeload.github.com/romainl/vim-qlist/tar.gz/master
 ```
 
