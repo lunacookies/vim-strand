@@ -195,7 +195,7 @@ impl FromStr for ArchivePlugin {
     type Err = url::ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Url::from_str(s).map(|u| ArchivePlugin(u))
+        Url::from_str(s).map(ArchivePlugin)
     }
 }
 
@@ -227,10 +227,8 @@ impl FromStr for Plugin {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         ArchivePlugin::from_str(s)
-            .map(|a| Plugin::Archive(a))
-            .or(GitRepo::from_str(s)
-                .map(|g| Plugin::Git(g))
-                .map_err(|e| e.into()))
+            .map(Plugin::Archive)
+            .or_else(|_| GitRepo::from_str(s).map(Plugin::Git).map_err(|e| e.into()))
     }
 }
 
