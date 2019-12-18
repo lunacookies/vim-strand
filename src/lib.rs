@@ -62,6 +62,10 @@ fn expand_path(path: &Path) -> PathBuf {
     }
 }
 
+trait PluginName {
+    fn get_name(&self) -> String;
+}
+
 #[derive(Deserialize)]
 pub enum GitProvider {
     GitHub,
@@ -117,6 +121,12 @@ impl fmt::Display for GitRepo {
                 self.user, self.repo, self.git_ref
             ),
         }
+    }
+}
+
+impl PluginName for GitRepo {
+    fn get_name(&self) -> String {
+        self.repo.clone()
     }
 }
 
@@ -191,6 +201,12 @@ impl fmt::Display for ArchivePlugin {
     }
 }
 
+impl PluginName for ArchivePlugin {
+    fn get_name(&self) -> String {
+        self.0.to_string()
+    }
+}
+
 impl FromStr for ArchivePlugin {
     type Err = url::ParseError;
 
@@ -210,6 +226,15 @@ impl fmt::Display for Plugin {
         match self {
             Plugin::Git(plugin) => write!(f, "{}", plugin),
             Plugin::Archive(plugin) => write!(f, "{}", plugin),
+        }
+    }
+}
+
+impl PluginName for Plugin {
+    fn get_name(&self) -> String {
+        match self {
+            Plugin::Git(g) => g.get_name(),
+            Plugin::Archive(a) => a.get_name(),
         }
     }
 }
