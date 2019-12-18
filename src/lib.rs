@@ -214,6 +214,26 @@ impl fmt::Display for Plugin {
     }
 }
 
+#[derive(Error, Debug)]
+pub enum PluginParseError {
+    #[error("failed to parse Git repo: {0}")]
+    GitParse(#[from] GitRepoParseError),
+    #[error("failed to parse archive plugin: {0}")]
+    ArchiveParse(#[from] url::ParseError),
+}
+
+impl FromStr for Plugin {
+    type Err = PluginParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        ArchivePlugin::from_str(s)
+            .map(|a| Plugin::Archive(a))
+            .or(GitRepo::from_str(s)
+                .map(|g| Plugin::Git(g))
+                .map_err(|e| e.into()))
+    }
+}
+
 impl Plugin {
     async fn install_plugin(&self, path: PathBuf) -> Result<()> {
         use anyhow::Context;
