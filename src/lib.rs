@@ -161,7 +161,7 @@ impl TryFrom<String> for GitRepo {
         };
 
         Ok(Self {
-            provider: provider.into(),
+            provider,
             user: user.into(),
             repo: repo.into(),
             git_ref: git_ref.into(),
