@@ -1,5 +1,7 @@
 # vim-strand
 
+[![Actions Status](https://github.com/arzg/vim-strand/workflows/CI/badge.svg)](https://github.com/arzg/vim-strand/actions)
+
 A barebones plugin manager for Vim in Rust that takes advantage of Vim’s packages feature. Its (very ambitious) goal is to provide the fastest out-of-the-box fresh plugin installation of all Vim plugin managers.
 
 #### Usage
