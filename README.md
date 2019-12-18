@@ -22,6 +22,10 @@ plugins:
   # GitHub and Bitbucket repos are both fully supported
   - Git: github@tpope/vim-surround
   - Git: bitbucket@vim-plugins-mirror/vim-surround
+
+  # GitHub is the default Git provider, so ‘github@’ can be elided:
+  - Git: tpope/vim-endwise
+
   - Git: github@neoclide/coc.nvim:release # Specify a branch name,
   - Git: github@tpope/vim-unimpaired:v2.0 # a tag name,
   - Git: github@romainl/vim-qf:4a97465    # or a commit hash.
