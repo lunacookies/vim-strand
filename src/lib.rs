@@ -191,6 +191,14 @@ impl fmt::Display for ArchivePlugin {
     }
 }
 
+impl FromStr for ArchivePlugin {
+    type Err = url::ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Url::from_str(s).map(|u| ArchivePlugin(u))
+    }
+}
+
 #[derive(Deserialize)]
 pub enum Plugin {
     Git(GitRepo),
