@@ -1,64 +1,49 @@
+name: CI
 on: [push, pull_request]
 
-name: CI
-
 jobs:
-  check:
-    name: Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-
   fmt:
-    name: Format
+    name: fmt ${{ github.sha }}
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2.0.0
+
       - uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
           toolchain: stable
           override: true
-      - run: rustup component add rustfmt
+
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: -- --check
 
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
+  ci:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        task: [['check', ''], ['test', ''], ['clippy', '-- --deny warnings'], ['build', '--release']]
+
+    name: ${{ matrix.task[0] }} ${{ github.sha }} for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2.0.0
+
       - uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
           toolchain: stable
           override: true
-      - run: rustup component add clippy
+
       - uses: actions-rs/cargo@v1
         with:
-          command: clippy
-          args: -- --deny warnings
+          command: ${{ matrix.task[0] }}
+          args: ${{ matrix.task[1] }}
+
+      - uses: actions/upload-artifact@v1.0.0
+        if: matrix.task[0] == 'build'
+        with:
+          name: ${{ matrix.os }}-${{ github.sha }}
+          path: target/release/strand
+
