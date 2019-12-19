@@ -13,7 +13,7 @@ A barebones plugin manager for Vim in Rust that takes advantage of Vim’s packa
 
 ### From Releases
 
-This is the recommended method for most users, as it allows you to skip the step of installing Rust and compiling strand yourself. Simply hop over to [the Releases section](https://github.com/arzg/vim-strand/releases), click on the newest release and download the binary appropriate to your machine. (Note that the `ubuntu-latest` binary also supports other Linux distributions).
+This is the recommended method for most users, as it allows you to skip the step of installing Rust and compiling strand yourself. Simply hop over to [the latest Release](https://github.com/arzg/vim-strand/releases/latest) and download the binary appropriate to your machine. (Note that the `ubuntu-latest` binary also supports other Linux distributions).
 
 ### From source
 
