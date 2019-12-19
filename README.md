@@ -60,3 +60,9 @@ To keep the plugin manager as simple as possible, it only provides one function:
 #### Motivation
 
 Once I realised that I barely utilised the more advanced features of Vim plugin managers like [vim-plug](https://github.com/junegunn/vim-plug), I decided to start developing [a small script](https://gist.github.com/arzg/64fcf8601b97e084ec5681c97f292b1a) to maintain my Vim plugin collection. Conveniently, Vim had just recently gotten support for Pathogen-like `runtimepath` management (`:help packages`), meaning that plugin managers now had only one job – downloading and updating plugins. So far the only plugin manager I’ve seen that takes advantage of packages is [minpac](https://github.com/k-takata/minpac). At one point that duct taped-together script from earlier would download plugins asynchronously using Bash’s job control (`&` and `wait`), leading to very fast install times. To keep things simple, the script just had a hard-coded list of plugins in an array that it would re-download fully each time, instead of keeping track of which plugins still needed to be installed or which plugins needed updating. I decided to rewrite the script in Rust to learn about its async IO capabilities and get better at the language.
+
+#### Prior art
+
+- [Pack](https://github.com/maralla/pack) 
+- [vim-plug](https://github.com/junegunn/vim-plug)
+- [minpac](https://github.com/k-takata/minpac)
