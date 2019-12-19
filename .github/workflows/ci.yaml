@@ -25,6 +25,11 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest]
         task: [['check', ''], ['test', ''], ['clippy', '-- --deny warnings'], ['build', '--release']]
 
+        # Windows path funniness means this doesn’t work
+        exclude:
+          - os: windows-latest
+            task: ['build', '--release']
+
     name: ${{ matrix.task[0] }} ${{ github.sha }} for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
