@@ -28,10 +28,10 @@ enum Subcommand {
 
 #[async_std::main]
 async fn main() -> Result<()> {
-    use termion::cursor;
+    use crossterm::{cursor, ExecutableCommand};
 
-    // Hide the cursor for the lifetime of this memory.
-    let _hide_cursor = cursor::HideCursor::from(std::io::stdout());
+    let mut stdout = std::io::stdout();
+    stdout.execute(cursor::Hide)?;
 
     let opts = Opts::from_args();
 
@@ -56,6 +56,8 @@ async fn main() -> Result<()> {
     // Clean out the plugin directory before installing.
     ensure_empty_dir(&config.plugin_dir).await?;
     strand::install_plugins(config.plugins, config.plugin_dir).await?;
+
+    stdout.execute(cursor::Show)?;
 
     Ok(())
 }
