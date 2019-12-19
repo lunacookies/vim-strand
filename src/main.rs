@@ -28,6 +28,11 @@ enum Subcommand {
 
 #[async_std::main]
 async fn main() -> Result<()> {
+    use termion::cursor;
+
+    // Hide the cursor for the lifetime of this memory.
+    let _hide_cursor = cursor::HideCursor::from(std::io::stdout());
+
     let opts = Opts::from_args();
 
     let config_dir = strand::get_config_dir();
