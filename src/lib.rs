@@ -6,6 +6,7 @@ use std::{
     fmt,
     path::{Path, PathBuf},
     str::FromStr,
+    time::Duration,
 };
 use thiserror::Error;
 use url::Url;
@@ -286,6 +287,23 @@ impl FromStr for Plugin {
     }
 }
 
+async fn recv_bytes_retry(url: &str) -> Result<Vec<u8>> {
+    use anyhow::bail;
+
+    let mut attempts = 0;
+    let max_attempts = 10;
+
+    // Try downloading ten times before giving up.
+    loop {
+        match surf::get(url).recv_bytes().await {
+            Ok(response) => return Ok(response),
+            Err(_) if attempts < max_attempts => attempts += 1,
+            Err(e) => bail!("failed retrieving contents at URL {}: {}", url, e),
+        }
+        task::sleep(Duration::from_millis(250)).await; // Sleep for 250ms between attempts.
+    }
+}
+
 impl Plugin {
     async fn install_plugin(&self, path: PathBuf, s: sync::Sender<InstallState>) -> Result<()> {
         use anyhow::Context;
@@ -300,13 +318,9 @@ impl Plugin {
         .await;
 
         let url = format!("{}", self);
-        let archive = match surf::get(url).recv_bytes().await {
-            Ok(response) => response,
-            Err(e) => {
-                eprintln!("Error: {}", e);
-                process::exit(1);
-            }
-        };
+        let archive = recv_bytes_retry(&url)
+            .await
+            .with_context(|| format!("failed downloading plugin {}", self))?;
 
         s.send(InstallState {
             status: InstallStateKind::Extracting,
@@ -360,7 +374,6 @@ fn decompress_tar_gz(bytes: &[u8], path: &Path) -> Result<()> {
 
 pub async fn install_plugins(plugins: Vec<Plugin>, dir: PathBuf) -> Result<()> {
     use pbr::MultiBar;
-    use std::time::Duration;
 
     let mut tasks = Vec::with_capacity(plugins.len());
     let mut multi = MultiBar::new(); // Holds the spinners of all plugins
