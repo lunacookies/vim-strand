@@ -1,0 +1,87 @@
+name: CD
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  release_url: release_url
+
+jobs:
+  create_release:
+    name: Create ${{ github.ref }} release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: true
+          prerelease: false
+
+      - name: Save release upload URL
+        run: echo ${{ steps.create_release.outputs.upload_url }} > release_url
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.release_url }}
+          path: ${{ env.release_url }}
+
+  cd:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+
+    name: Release ${{ github.ref }} for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    env:
+      bin: target/release/strand
+      zip: target/release/strand.zip
+
+    steps:
+      - uses: actions/checkout@v2.0.0
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - uses: actions-rs/cargo@v1
+        name: Compile
+        with:
+          command: build
+          args: --release
+
+      - name: Zip ${{ env.bin }}
+        run: zip --junk-paths ${{ env.zip }} ${{ env.bin }}
+
+      - uses: actions/download-artifact@v1
+        name: Download release URL
+        with:
+          name: ${{ env.release_url }}
+
+      # We redirect output to a field called ‘url’ for capture by the next
+      # action, and then undo the botched expansion (Bash’s ‘brace expansion’)
+      # of the URL that occurs every time it is uploaded.
+      - name: Parse release URL
+        id: get_release_url
+        run: |
+          printf '##[set-output name=url;]%s' $( \
+            cat ${{ env.release_url }}/${{ env.release_url }} \
+          | awk '{print $1}' \
+          | sed 's/?name/{?name,label}/')
+
+      - uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_url.outputs.url }}
+          asset_path: ${{ env.zip }}
+          asset_name: ${{ github.ref }}-${{ matrix.os }}
+          asset_content_type: application/zip
