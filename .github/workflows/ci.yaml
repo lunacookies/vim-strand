@@ -25,11 +25,6 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest]
         task: [['check', ''], ['test', ''], ['clippy', '-- --deny warnings'], ['build', '--release']]
 
-        # Windows path funniness means this doesn’t work
-        exclude:
-          - os: windows-latest
-            task: ['build', '--release']
-
     name: ${{ matrix.task[0] }} ${{ github.sha }} for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
@@ -47,7 +42,8 @@ jobs:
           args: ${{ matrix.task[1] }}
 
       - uses: actions/upload-artifact@v1.0.0
-        if: matrix.task[0] == 'build'
+        # This action doesn’t work on Windows due to something weird with paths.
+        if: matrix.task[0] == 'build' && matrix.os != 'windows-latest'
         with:
           name: ${{ matrix.os }}-${{ github.sha }}
           path: target/release/strand
