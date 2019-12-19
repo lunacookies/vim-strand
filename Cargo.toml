@@ -11,6 +11,7 @@ anyhow = "1.0"
 async-macros = "2.0"
 async-std = { version = "1.2", features = ["attributes", "unstable"] }
 colored = "1.2"
+crossterm = "0.14"
 dirs = "2.0"
 flate2 = "1.0"
 pbr = "1.0"
@@ -18,7 +19,6 @@ serde = { version = "1.0", features = ["derive"] }
 structopt = "0.3"
 surf = "1.0"
 tar = "0.4"
-termion = "1.5"
 thiserror = "1.0"
 url = { version = "2.1", features = ["serde"] }
 yaml = { version = "0.8", package = "serde_yaml" }
