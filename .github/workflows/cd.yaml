@@ -25,6 +25,7 @@ jobs:
           prerelease: false
 
       - name: Save release upload URL
+        shell: bash
         run: echo ${{ steps.create_release.outputs.upload_url }} > release_url
 
       - uses: actions/upload-artifact@v1
@@ -35,7 +36,7 @@ jobs:
   cd:
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
 
     name: Release ${{ github.ref }} for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -59,6 +60,7 @@ jobs:
           args: --release
 
       - name: Zip ${{ env.bin }}
+        shell: bash
         run: zip --junk-paths ${{ env.zip }} ${{ env.bin }}
 
       - uses: actions/download-artifact@v1
@@ -71,6 +73,7 @@ jobs:
       # of the URL that occurs every time it is uploaded.
       - name: Parse release URL
         id: get_release_url
+        shell: bash
         run: |
           printf '##[set-output name=url;]%s' $( \
             cat ${{ env.release_url }}/${{ env.release_url }} \
