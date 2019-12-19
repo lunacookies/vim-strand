@@ -22,7 +22,7 @@ jobs:
   ci:
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
         task: [['check', ''], ['test', ''], ['clippy', '-- --deny warnings'], ['build', '--release']]
 
     name: ${{ matrix.task[0] }} ${{ github.sha }} for ${{ matrix.os }}
