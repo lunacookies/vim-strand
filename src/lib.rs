@@ -307,7 +307,6 @@ async fn recv_bytes_retry(url: &str) -> Result<Vec<u8>> {
 impl Plugin {
     async fn install_plugin(&self, path: PathBuf, s: sync::Sender<InstallState>) -> Result<()> {
         use anyhow::Context;
-        use std::process;
 
         let name = self.get_name();
 
