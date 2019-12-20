@@ -307,7 +307,7 @@ async fn recv_bytes_retry(url: &str) -> Result<Vec<u8>> {
 }
 
 impl Plugin {
-    async fn install_plugin(&self, path: PathBuf, s: sync::Sender<InstallState>) -> Result<()> {
+    async fn install(&self, path: PathBuf, s: sync::Sender<InstallState>) -> Result<()> {
         use anyhow::Context;
 
         let name = self.get_name();
@@ -424,7 +424,7 @@ pub async fn install_plugins(plugins: Vec<Plugin>, dir: PathBuf) -> Result<()> {
             // If the plugin install fails we send the error that occurred to the spinner for
             // display to the user.
             let install = task::spawn(async move {
-                if let Err(e) = p.install_plugin(dir, s.clone()).await {
+                if let Err(e) = p.install(dir, s.clone()).await {
                     s.send(InstallState {
                         status: InstallStateKind::Error(e),
                         name: p.get_name(),
