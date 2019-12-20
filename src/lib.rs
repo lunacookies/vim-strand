@@ -220,6 +220,7 @@ enum InstallStateKind {
     Downloading,
     Extracting,
     Installed,
+    Error(anyhow::Error),
 }
 
 impl fmt::Display for InstallStateKind {
@@ -230,6 +231,7 @@ impl fmt::Display for InstallStateKind {
             InstallStateKind::Downloading => write!(f, "{}", "Downloading".cyan().bold()),
             InstallStateKind::Extracting => write!(f, " {}", "Extracting".blue().bold()),
             InstallStateKind::Installed => write!(f, "✓ {}", "Installed".green().bold()),
+            InstallStateKind::Error(e) => write!(f, "×     {}: {}", "Error".red().bold(), e),
         }
     }
 }
@@ -398,13 +400,15 @@ pub async fn install_plugins(plugins: Vec<Plugin>, dir: PathBuf) -> Result<()> {
         tasks.push(task::spawn(async move {
             let ticker = task::spawn(async move {
                 // Tick the spinner every fifty milliseconds until the plugin has finished
-                // installing.
+                // installing or an error occurs.
                 loop {
                     if r.is_full() {
                         let install_state = r.recv().await.unwrap();
                         let msg = format!("{}  ", install_state);
 
-                        if let InstallStateKind::Installed = install_state.status {
+                        if let InstallStateKind::Installed | InstallStateKind::Error(_) =
+                            install_state.status
+                        {
                             spinner.finish_print(&msg);
                             break;
                         } else {
@@ -417,11 +421,20 @@ pub async fn install_plugins(plugins: Vec<Plugin>, dir: PathBuf) -> Result<()> {
                 }
             });
 
-            let install = task::spawn(async move { p.install_plugin(dir, s).await });
+            // If the plugin install fails we send the error that occurred to the spinner for
+            // display to the user.
+            let install = task::spawn(async move {
+                if let Err(e) = p.install_plugin(dir, s.clone()).await {
+                    s.send(InstallState {
+                        status: InstallStateKind::Error(e),
+                        name: p.get_name(),
+                    })
+                    .await;
+                }
+            });
 
-            // We return the success or failure of installing the plugin to the surrounding task
             ticker.await;
-            install.await
+            install.await;
         }));
     });
 
@@ -429,7 +442,7 @@ pub async fn install_plugins(plugins: Vec<Plugin>, dir: PathBuf) -> Result<()> {
     multi.listen();
 
     for task in tasks {
-        task.await?;
+        task.await;
     }
 
     Ok(())
