@@ -320,12 +320,7 @@ impl Plugin {
         })
         .await;
 
-        decompress_tar_gz(&archive, &path).with_context(|| {
-            format!(
-                "failed to extact archive while installing plugin from URL {} -- got from server:\n‘{}’",
-                self, String::from_utf8_lossy(&archive)
-            )
-        })?;
+        decompress_tar_gz(&archive, &path).with_context(|| "failed to extract plugin archive")?;
 
         s.send(InstallState {
             status: InstallStateKind::Installed,
