@@ -319,7 +319,7 @@ impl Plugin {
         let url = format!("{}", self);
         let archive = recv_bytes_retry(&url)
             .await
-            .with_context(|| format!("failed downloading plugin {}", self))?;
+            .with_context(|| "failed downloading plugin")?;
 
         s.send(InstallState {
             status: InstallStateKind::Extracting,
