@@ -1,6 +1,7 @@
 use anyhow::Result;
 use async_std::{sync, task};
 use serde::Deserialize;
+use shrinkwraprs::Shrinkwrap;
 use std::{
     convert::TryFrom,
     fmt,
@@ -63,10 +64,6 @@ fn expand_path(path: &Path) -> PathBuf {
     }
 }
 
-trait PluginName {
-    fn get_name(&self) -> String;
-}
-
 #[derive(Deserialize)]
 pub enum GitProvider {
     GitHub,
@@ -103,31 +100,30 @@ pub struct GitRepo {
     git_ref: String,
 }
 
-impl fmt::Display for GitRepo {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.provider {
-            GitProvider::GitHub => write!(
-                f,
+impl TryFrom<&GitRepo> for Url {
+    type Error = url::ParseError;
+
+    fn try_from(gr: &GitRepo) -> Result<Self, Self::Error> {
+        Url::parse(&match gr.provider {
+            GitProvider::GitHub => format!(
                 "https://codeload.github.com/{}/{}/tar.gz/{}",
-                self.user, self.repo, self.git_ref
+                gr.user, gr.repo, gr.git_ref
             ),
-            GitProvider::GitLab => write!(
-                f,
+            GitProvider::GitLab => format!(
                 "https://gitlab.com/{0}/{1}/-/archive/{2}/{0}-{2}.tar.gz",
-                self.user, self.repo, self.git_ref
+                gr.user, gr.repo, gr.git_ref
             ),
-            GitProvider::Bitbucket => write!(
-                f,
+            GitProvider::Bitbucket => format!(
                 "https://bitbucket.org/{}/{}/get/{}.tar.gz",
-                self.user, self.repo, self.git_ref
+                gr.user, gr.repo, gr.git_ref
             ),
-        }
+        })
     }
 }
 
-impl PluginName for GitRepo {
-    fn get_name(&self) -> String {
-        self.repo.clone()
+impl fmt::Display for GitRepo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.repo)
     }
 }
 
@@ -193,18 +189,12 @@ impl TryFrom<String> for GitRepo {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Shrinkwrap)]
 pub struct ArchivePlugin(Url);
 
 impl fmt::Display for ArchivePlugin {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl PluginName for ArchivePlugin {
-    fn get_name(&self) -> String {
-        self.0.to_string()
+        write!(f, "{}", *self)
     }
 }
 
@@ -262,11 +252,13 @@ impl fmt::Display for Plugin {
     }
 }
 
-impl PluginName for Plugin {
-    fn get_name(&self) -> String {
-        match self {
-            Plugin::Git(g) => g.get_name(),
-            Plugin::Archive(a) => a.get_name(),
+impl TryFrom<&Plugin> for Url {
+    type Error = url::ParseError;
+
+    fn try_from(p: &Plugin) -> Result<Self, Self::Error> {
+        match p {
+            Plugin::Git(gr) => Url::try_from(gr),
+            Plugin::Archive(a) => Ok((*a).clone()),
         }
     }
 }
@@ -310,7 +302,7 @@ impl Plugin {
     async fn install(&self, path: PathBuf, s: sync::Sender<InstallState>) -> Result<()> {
         use anyhow::Context;
 
-        let name = self.get_name();
+        let name = self.to_string();
 
         s.send(InstallState {
             status: InstallStateKind::Downloading,
@@ -318,8 +310,7 @@ impl Plugin {
         })
         .await;
 
-        let url = format!("{}", self);
-        let archive = recv_bytes_retry(&url)
+        let archive = recv_bytes_retry(&Url::try_from(self)?.as_str())
             .await
             .with_context(|| "failed downloading plugin")?;
 
@@ -427,7 +418,7 @@ pub async fn install_plugins(plugins: Vec<Plugin>, dir: PathBuf) -> Result<()> {
                 if let Err(e) = p.install(dir, s.clone()).await {
                     s.send(InstallState {
                         status: InstallStateKind::Error(e),
-                        name: p.get_name(),
+                        name: p.to_string(),
                     })
                     .await;
                 }

@@ -22,3 +22,4 @@ tar = "0.4"
 thiserror = "1.0"
 url = { version = "2.1", features = ["serde"] }
 yaml = { version = "0.8", package = "serde_yaml" }
+shrinkwraprs = "0.3"
