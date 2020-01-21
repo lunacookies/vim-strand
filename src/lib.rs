@@ -210,6 +210,7 @@ enum InstallStateKind {
     Downloading,
     Extracting,
     Installed,
+    Retry(u32),
     Error(anyhow::Error),
 }
 
@@ -221,6 +222,9 @@ impl fmt::Display for InstallStateKind {
             InstallStateKind::Downloading => write!(f, "{}", "Downloading".cyan().bold()),
             InstallStateKind::Extracting => write!(f, " {}", "Extracting".blue().bold()),
             InstallStateKind::Installed => write!(f, "✓ {}", "Installed".green().bold()),
+            InstallStateKind::Retry(i) => {
+                write!(f, "      {}: attempt #{} of", "Retry".yellow().bold(), i)
+            }
             InstallStateKind::Error(e) => write!(f, "×     {}: {}", "Error".red().bold(), e),
         }
     }
@@ -281,7 +285,11 @@ impl FromStr for Plugin {
     }
 }
 
-async fn recv_bytes_retry(url: &str) -> Result<Vec<u8>> {
+async fn recv_bytes_retry(
+    url: &str,
+    s: &sync::Sender<InstallState>,
+    name: &str,
+) -> Result<Vec<u8>> {
     use anyhow::bail;
 
     let mut attempts = 0;
@@ -295,6 +303,12 @@ async fn recv_bytes_retry(url: &str) -> Result<Vec<u8>> {
             Err(e) => bail!("failed retrieving contents at URL {}: {}", url, e),
         }
         task::sleep(Duration::from_millis(250)).await; // Sleep for 250ms between attempts.
+
+        s.send(InstallState {
+            status: InstallStateKind::Retry(attempts),
+            name: name.into(),
+        })
+        .await;
     }
 }
 
@@ -310,7 +324,7 @@ impl Plugin {
         })
         .await;
 
-        let archive = recv_bytes_retry(&Url::try_from(self)?.as_str())
+        let archive = recv_bytes_retry(&Url::try_from(self)?.as_str(), &s, &name)
             .await
             .with_context(|| "failed downloading plugin")?;
 
