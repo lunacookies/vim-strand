@@ -293,22 +293,23 @@ async fn recv_bytes_retry(
     use anyhow::bail;
 
     let mut attempts = 0;
-    let max_attempts = 10;
+    let max_attempts = 5;
 
-    // Try downloading ten times before giving up.
+    // Try downloading five times before giving up.
     loop {
         match surf::get(url).recv_bytes().await {
             Ok(response) => return Ok(response),
             Err(_) if attempts < max_attempts => attempts += 1,
             Err(e) => bail!("failed retrieving contents at URL {}: {}", url, e),
         }
-        task::sleep(Duration::from_millis(250)).await; // Sleep for 250ms between attempts.
 
         s.send(InstallState {
             status: InstallStateKind::Retry(attempts),
             name: name.into(),
         })
         .await;
+
+        task::sleep(Duration::from_secs(2)).await; // Sleep for two seconds between attempts.
     }
 }
 
