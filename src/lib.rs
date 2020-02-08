@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{bail, Result};
 use async_std::{sync, task};
 use serde::Deserialize;
 use shrinkwraprs::Shrinkwrap;
@@ -290,8 +290,6 @@ async fn recv_bytes_retry(
     s: &sync::Sender<InstallState>,
     name: &str,
 ) -> Result<Vec<u8>> {
-    use anyhow::bail;
-
     let mut attempts = 0;
     let max_attempts = 5;
 
@@ -325,9 +323,13 @@ impl Plugin {
         })
         .await;
 
-        let archive = recv_bytes_retry(&Url::try_from(self)?.as_str(), &s, &name)
+        let recv_bytes = recv_bytes_retry(&Url::try_from(self)?.as_str(), &s, &name)
             .await
             .with_context(|| "failed downloading plugin")?;
+
+        if &b"404: Not Found\n" == &recv_bytes.as_slice() {
+            bail!("plugin does not exist (404)");
+        }
 
         s.send(InstallState {
             status: InstallStateKind::Extracting,
@@ -335,7 +337,8 @@ impl Plugin {
         })
         .await;
 
-        decompress_tar_gz(&archive, &path).with_context(|| "failed to extract plugin archive")?;
+        decompress_tar_gz(&recv_bytes, &path)
+            .with_context(|| "failed to extract plugin archive")?;
 
         s.send(InstallState {
             status: InstallStateKind::Installed,
