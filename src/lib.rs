@@ -327,7 +327,7 @@ impl Plugin {
             .await
             .with_context(|| "failed downloading plugin")?;
 
-        if &b"404: Not Found\n" == &recv_bytes.as_slice() {
+        if b"404: Not Found\n" == recv_bytes.as_slice() {
             bail!("plugin does not exist (404)");
         }
 
