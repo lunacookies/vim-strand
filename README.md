@@ -40,7 +40,6 @@ This first checks out the last tag (stable version) of the repository, and then 
 The first thing you need to do to get started with strand is to set up a configuration file – strand uses the YAML format. Put it in the location specified by `strand --config-location`. Here is an example:
 
 ```yaml
----
 plugin_dir: ~/.vim/pack/strand/start
 
 plugins:
